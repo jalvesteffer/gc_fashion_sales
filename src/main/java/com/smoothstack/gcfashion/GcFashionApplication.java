@@ -9,5 +9,4 @@ public class GcFashionApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GcFashionApplication.class, args);
 	}
-//test
 }

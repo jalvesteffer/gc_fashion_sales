@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "store")
 public class Store implements Serializable {
@@ -29,6 +31,7 @@ public class Store implements Serializable {
 	private String location;
 	
 	@OneToMany(mappedBy = "store")
+	@JsonBackReference(value="storeTransactions")
 	private List<Transaction> transactions;
 
 	/**

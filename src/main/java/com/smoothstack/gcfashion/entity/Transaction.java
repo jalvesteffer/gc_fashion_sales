@@ -63,13 +63,11 @@ public class Transaction implements Serializable {
 	@ManyToOne
 	@MapsId("storeId")
 	@JoinColumn(name = "store_id")
-//	@JsonBackReference(value="productCategory")
 	private Store store;
 	
 	@ManyToOne
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
-//	@JsonBackReference(value="productCategory")
 	private User user;
 
 	/**
