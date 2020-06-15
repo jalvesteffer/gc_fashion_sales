@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.smoothstack</groupId>
-	<artifactId>gc-fashion</artifactId>
+	<artifactId>gc_fashion_sales</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>gc-fashion</name>
 	<description>Fashion Store project</description>
