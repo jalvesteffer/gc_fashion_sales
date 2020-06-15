@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "user")
 public class User implements Serializable {
@@ -41,119 +43,72 @@ public class User implements Serializable {
 	private String fullName;
 	
 	@Column(name = "address")
-	private Long address;
+	private String address;
 	
 	@OneToMany(mappedBy = "user")
+	@JsonBackReference(value="userTransactions")
 	private List<Transaction> transactions;
 
-	/**
-	 * @return the userId
-	 */
 	public Long getUserId() {
 		return userId;
 	}
 
-	/**
-	 * @param userId the userId to set
-	 */
 	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
 
-	/**
-	 * @return the cardNo
-	 */
 	public Double getCardNo() {
 		return cardNo;
 	}
 
-	/**
-	 * @param cardNo the cardNo to set
-	 */
 	public void setCardNo(Double cardNo) {
 		this.cardNo = cardNo;
 	}
 
-	/**
-	 * @return the username
-	 */
 	public String getUsername() {
 		return username;
 	}
 
-	/**
-	 * @param username the username to set
-	 */
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
-	/**
-	 * @return the password
-	 */
 	public String getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password the password to set
-	 */
 	public void setPassword(String password) {
 		this.password = password;
 	}
 
-	/**
-	 * @return the role
-	 */
 	public String getRole() {
 		return role;
 	}
 
-	/**
-	 * @param role the role to set
-	 */
 	public void setRole(String role) {
 		this.role = role;
 	}
 
-	/**
-	 * @return the fullName
-	 */
 	public String getFullName() {
 		return fullName;
 	}
 
-	/**
-	 * @param fullName the fullName to set
-	 */
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
 	}
 
-	/**
-	 * @return the address
-	 */
-	public Long getAddress() {
+	public String getAddress() {
 		return address;
 	}
 
-	/**
-	 * @param address the address to set
-	 */
-	public void setAddress(Long address) {
+	public void setAddress(String address) {
 		this.address = address;
 	}
 
-	/**
-	 * @return the transactions
-	 */
 	public List<Transaction> getTransactions() {
 		return transactions;
 	}
 
-	/**
-	 * @param transactions the transactions to set
-	 */
 	public void setTransactions(List<Transaction> transactions) {
 		this.transactions = transactions;
 	}
@@ -225,6 +180,7 @@ public class User implements Serializable {
 		return true;
 	}
 
+	
 	
 	
 }

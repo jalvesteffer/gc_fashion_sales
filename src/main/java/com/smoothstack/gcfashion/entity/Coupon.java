@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "coupon")
 public class Coupon implements Serializable {
@@ -39,7 +41,7 @@ public class Coupon implements Serializable {
 	private Short discount;
 	
 	@ManyToMany(mappedBy = "coupons")
-//	@JsonBackReference(value="genres")
+	@JsonBackReference(value="couponTransactions")
 	private List<Transaction> transactions;
 
 	/**
