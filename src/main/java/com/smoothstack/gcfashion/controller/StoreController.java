@@ -33,11 +33,11 @@ public class StoreController {
 
 	
 	
-	@GetMapping("/transactions")
-	public ResponseEntity<Transaction> getTransactionById(@RequestBody Transaction t) {
+	@GetMapping("/transactions/{id}")
+	public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
 		
 		// read transaction by Id passed in body
-		Transaction transaction = storeService.findTransactionById(t.getTransactionId());
+		Transaction transaction = storeService.findTransactionById(id);
 		
 		// a successful request should produce non-null transaction return value
 		if (transaction != null) {
