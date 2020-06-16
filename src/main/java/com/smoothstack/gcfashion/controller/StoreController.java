@@ -24,7 +24,7 @@ import com.smoothstack.gcfashion.entity.Store;
 import com.smoothstack.gcfashion.service.StoreService;
 
 @RestController
-@RequestMapping("/gcfashions")
+@RequestMapping("/gcfashions/sales")
 public class StoreController {
 	
 	@Autowired
