@@ -82,10 +82,13 @@ public class StoreController {
 		}
 	}
 	
-	@DeleteMapping("/transactions")
-	public ResponseEntity<String> deleteTransaction(@RequestBody Transaction t) {
+	@DeleteMapping("/transactions/{id}")
+	public ResponseEntity<String> deleteTransaction(@PathVariable Long id) {
 		
 		Integer returnInt = -1; // for determining HttpStatus
+		
+		Transaction t = new Transaction();
+		t.setTransactionId(id);
 		
 		// update a transaction
 		returnInt = storeService.saveTransaction(t);
