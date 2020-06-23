@@ -1,5 +1,6 @@
 package com.smoothstack.gcfashion.service;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +51,21 @@ public class StoreService {
 			return null;
 		}
 	};
+	
+	public Long openTransactionsExist(long userId) {
+		// get transaction by userId
+		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
+		
+		if (retVal.isPresent()) {
+			return retVal.get().getTransactionId();
+		} else {
+			return -1L;
+		}
+		
+		
+		
+		
+	}
 
 	public Integer saveTransaction(Transaction transaction) {
 
@@ -59,7 +75,13 @@ public class StoreService {
 
 			// update transaction if transaction id matches existing record
 			if (tDAO.findById(transaction.getTransactionId()).isPresent()) {
-				tDAO.save(transaction);
+				try {
+					tDAO.save(transaction);
+				} catch (Exception e) {
+					// query error
+					System.out.println("Update Exception caught for Duplicate Entry");
+				}
+				
 			} else {
 				return -1;
 			}
