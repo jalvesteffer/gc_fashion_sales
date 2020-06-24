@@ -1,6 +1,7 @@
 package com.smoothstack.gcfashion.service;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smoothstack.gcfashion.dao.CouponDAO;
+import com.smoothstack.gcfashion.dao.ProductDAO;
 import com.smoothstack.gcfashion.dao.TransactionDAO;
-
+import com.smoothstack.gcfashion.entity.Inventory;
+import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.entity.Transaction;
 
 /**
@@ -24,6 +27,9 @@ public class StoreService {
 
 	@Autowired
 	TransactionDAO tDAO;
+
+	@Autowired
+	ProductDAO pDAO;
 
 	/**
 	 * Returns all transactions
@@ -51,20 +57,37 @@ public class StoreService {
 			return null;
 		}
 	};
-	
+
 	public Long openTransactionsExist(long userId) {
 		// get transaction by userId
 		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
-		
+
 		if (retVal.isPresent()) {
 			return retVal.get().getTransactionId();
 		} else {
 			return -1L;
 		}
-		
-		
-		
-		
+	}
+
+	public List<Product> getCompleteTransactionDetails(Long retVal) {
+
+		Transaction transaction = this.findTransactionById(retVal);
+		List<Product> productList = new ArrayList<>();
+		List<Product> retList = null; // temporarily stores result of query
+		List<Inventory> invList = null;
+
+		// for each inventory item in the open transaction, get its product info and
+		//   set the products inventory list to the inventory item
+		for (Inventory inv : transaction.getInventory()) {
+			retList = pDAO.findByProductId(inv.getProductId());
+			invList = new ArrayList<>();
+			inv.setQty(1L);
+			invList.add(inv);
+			retList.get(0).setInventory(invList);
+			productList.addAll(retList);
+		}
+
+		return productList;
 	}
 
 	public Integer saveTransaction(Transaction transaction) {
@@ -81,7 +104,7 @@ public class StoreService {
 					// query error
 					System.out.println("Update Exception caught for Duplicate Entry");
 				}
-				
+
 			} else {
 				return -1;
 			}

@@ -1,5 +1,6 @@
 package com.smoothstack.gcfashion.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,19 +29,16 @@ import com.smoothstack.gcfashion.service.StoreService;
 @RestController
 @RequestMapping("/gcfashions/sales")
 public class StoreController {
-	
+
 	@Autowired
 	StoreService storeService;
-	
 
-	
-	
 	@GetMapping("/transactions/{id}")
 	public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
-		
+
 		// read transaction by Id passed in body
 		Transaction transaction = storeService.findTransactionById(id);
-		
+
 		// a successful request should produce non-null transaction return value
 		if (transaction != null) {
 			return new ResponseEntity<Transaction>(transaction, HttpStatus.OK);
@@ -49,15 +47,36 @@ public class StoreController {
 			return ResponseEntity.notFound().build();
 		}
 	}
-	
+
+	@GetMapping("/transactions/open/{userId}")
+	public ResponseEntity<List<Product>> getOpenTransactionByUserId(@PathVariable Long userId) {
+
+		List<Product> productList = null;
+
+		// get any open transaction by userId passed as PathVariable
+		Long retVal = storeService.openTransactionsExist(userId);
+
+		// set productList to null if no open transaction for userId was found
+		// otherwise, create a product list representing users shopping cart
+		// from that transaction info
+		if (retVal == -1) {
+			productList = new ArrayList<>(); // create empty list
+		} else {
+			productList = storeService.getCompleteTransactionDetails(retVal);
+		}
+
+		// return response
+		return new ResponseEntity<List<Product>>(productList, HttpStatus.OK);
+	}
+
 	@PutMapping("/transactions")
 	public ResponseEntity<String> updateTransaction(@RequestBody Transaction t) {
-		
+
 		Integer returnInt = -1; // for determining HttpStatus
-		
+
 		// update a transaction
 		returnInt = storeService.saveTransaction(t);
-		
+
 		// indicate success or failure
 		if (returnInt == 0) {
 			return new ResponseEntity<String>("", HttpStatus.OK);
@@ -65,38 +84,39 @@ public class StoreController {
 			return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	@PostMapping("/transactions")
 	public ResponseEntity<String> createTransaction(@RequestBody Transaction t) {
-		
+
 		Transaction existingTransaction = null;
 		List<Inventory> existingInventory = null;
 		Integer returnInt = -1; // for determining HttpStatus
-		
+
 		Long retVal = storeService.openTransactionsExist(t.getUserId());
-		
+
 		// no open transaction exists, create a new one
 		if (retVal == -1) {
 			returnInt = storeService.saveTransaction(t);
-		} 
-		
+		}
+
 		// an open transaction exists, update transaction
 		else {
 			// get a copy of the existing transaction
 			existingTransaction = storeService.findTransactionById(retVal);
-			
-			// combine the new item in the transaction to the items from the existing transaction
+
+			// combine the new item in the transaction to the items from the existing
+			// transaction
 			existingInventory = existingTransaction.getInventory();
 			existingInventory.addAll(t.getInventory());
-			
+
 			// set new transaction values
 			t.setTransactionId(retVal);
 			t.setInventory(existingInventory);
-			
+
 			// update the existing transaction
 			returnInt = storeService.saveTransaction(t);
 		}
-		
+
 		// indicate success or failure
 		if (returnInt == 0) {
 			return new ResponseEntity<String>("", HttpStatus.OK);
@@ -104,18 +124,18 @@ public class StoreController {
 			return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	@DeleteMapping("/transactions/{id}")
 	public ResponseEntity<String> deleteTransaction(@PathVariable Long id) {
-		
+
 		Integer returnInt = -1; // for determining HttpStatus
-		
+
 		Transaction t = new Transaction();
 		t.setTransactionId(id);
-		
+
 		// update a transaction
 		returnInt = storeService.saveTransaction(t);
-		
+
 		// indicate success or failure
 		if (returnInt == 0) {
 			return new ResponseEntity<String>("Success", HttpStatus.OK);
@@ -123,5 +143,5 @@ public class StoreController {
 			return new ResponseEntity<String>("Bad Request", HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 }
