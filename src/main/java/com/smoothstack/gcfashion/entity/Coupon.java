@@ -17,11 +17,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 @Table(name = "coupon")
 public class Coupon implements Serializable {
 
-
+	
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 3449249674365303936L;
+	private static final long serialVersionUID = 2253090887578794285L;
 
 	@Id
 	@Column(name = "coupon_id")
@@ -38,92 +38,67 @@ public class Coupon implements Serializable {
 	private String appliesTo;
 	
 	@Column(name = "discount")
-	private Short discount;
+	private Double discount;
+	
+	@Column(name = "coupon_desc")
+	private String couponDesc;
 	
 	@ManyToMany(mappedBy = "coupons")
 	@JsonBackReference(value="couponTransactions")
 	private List<Transaction> transactions;
 
-	/**
-	 * @return the couponId
-	 */
 	public Long getCouponId() {
 		return couponId;
 	}
 
-	/**
-	 * @param couponId the couponId to set
-	 */
 	public void setCouponId(Long couponId) {
 		this.couponId = couponId;
 	}
 
-	/**
-	 * @return the productId
-	 */
 	public Long getProductId() {
 		return productId;
 	}
 
-	/**
-	 * @param productId the productId to set
-	 */
 	public void setProductId(Long productId) {
 		this.productId = productId;
 	}
 
-	/**
-	 * @return the productType
-	 */
 	public String getProductType() {
 		return productType;
 	}
 
-	/**
-	 * @param productType the productType to set
-	 */
 	public void setProductType(String productType) {
 		this.productType = productType;
 	}
 
-	/**
-	 * @return the appliesTo
-	 */
 	public String getAppliesTo() {
 		return appliesTo;
 	}
 
-	/**
-	 * @param appliesTo the appliesTo to set
-	 */
 	public void setAppliesTo(String appliesTo) {
 		this.appliesTo = appliesTo;
 	}
 
-	/**
-	 * @return the discount
-	 */
-	public Short getDiscount() {
+	public Double getDiscount() {
 		return discount;
 	}
 
-	/**
-	 * @param discount the discount to set
-	 */
-	public void setDiscount(Short discount) {
+	public void setDiscount(Double discount) {
 		this.discount = discount;
 	}
 
-	/**
-	 * @return the transactions
-	 */
+	public String getCouponDesc() {
+		return couponDesc;
+	}
+
+	public void setCouponDesc(String couponDesc) {
+		this.couponDesc = couponDesc;
+	}
+
 	public List<Transaction> getTransactions() {
 		return transactions;
 	}
 
-	/**
-	 * @param transactions the transactions to set
-	 */
 	public void setTransactions(List<Transaction> transactions) {
 		this.transactions = transactions;
 	}
@@ -133,6 +108,7 @@ public class Coupon implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((appliesTo == null) ? 0 : appliesTo.hashCode());
+		result = prime * result + ((couponDesc == null) ? 0 : couponDesc.hashCode());
 		result = prime * result + ((couponId == null) ? 0 : couponId.hashCode());
 		result = prime * result + ((discount == null) ? 0 : discount.hashCode());
 		result = prime * result + ((productId == null) ? 0 : productId.hashCode());
@@ -154,6 +130,11 @@ public class Coupon implements Serializable {
 			if (other.appliesTo != null)
 				return false;
 		} else if (!appliesTo.equals(other.appliesTo))
+			return false;
+		if (couponDesc == null) {
+			if (other.couponDesc != null)
+				return false;
+		} else if (!couponDesc.equals(other.couponDesc))
 			return false;
 		if (couponId == null) {
 			if (other.couponId != null)
@@ -183,5 +164,6 @@ public class Coupon implements Serializable {
 		return true;
 	}
 
+	
 	
 }

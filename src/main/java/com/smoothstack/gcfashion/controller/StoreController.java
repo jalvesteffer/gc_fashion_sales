@@ -33,11 +33,11 @@ public class StoreController {
 
 	
 	
-	@GetMapping("/transactions")
-	public ResponseEntity<Transaction> getTransactionById(@RequestBody Transaction t) {
+	@GetMapping("/transactions/{id}")
+	public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
 		
 		// read transaction by Id passed in body
-		Transaction transaction = storeService.findTransactionById(t.getTransactionId());
+		Transaction transaction = storeService.findTransactionById(id);
 		
 		// a successful request should produce non-null transaction return value
 		if (transaction != null) {
@@ -82,10 +82,13 @@ public class StoreController {
 		}
 	}
 	
-	@DeleteMapping("/transactions")
-	public ResponseEntity<String> deleteTransaction(@RequestBody Transaction t) {
+	@DeleteMapping("/transactions/{id}")
+	public ResponseEntity<String> deleteTransaction(@PathVariable Long id) {
 		
 		Integer returnInt = -1; // for determining HttpStatus
+		
+		Transaction t = new Transaction();
+		t.setTransactionId(id);
 		
 		// update a transaction
 		returnInt = storeService.saveTransaction(t);
