@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.smoothstack.gcfashion.dao.CouponDAO;
 import com.smoothstack.gcfashion.dao.ProductDAO;
 import com.smoothstack.gcfashion.dao.TransactionDAO;
+import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
 import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.entity.Transaction;
@@ -58,6 +59,16 @@ public class StoreService {
 		}
 	};
 
+	public Coupon getCoupon(long transactionId) {
+		Transaction transaction = this.findTransactionById(transactionId);
+		
+		if (transaction.getCoupons().size() > 0) {
+			return transaction.getCoupons().get(0);
+		}
+
+		return null;
+	}
+
 	public Long openTransactionsExist(long userId) {
 		// get transaction by userId
 		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
@@ -69,9 +80,9 @@ public class StoreService {
 		}
 	}
 
-	public List<Product> getCompleteTransactionDetails(Long retVal) {
+	public List<Product> getCompleteTransactionDetails(Long transactionId) {
 
-		Transaction transaction = this.findTransactionById(retVal);
+		Transaction transaction = this.findTransactionById(transactionId);
 		List<Product> productList = new ArrayList<>();
 		List<Product> retList = null;
 		List<Product> newList = null;
@@ -79,21 +90,21 @@ public class StoreService {
 		Product product = null;
 
 		// for each inventory item in the open transaction, get its product info and
-		//   set the products inventory list to the inventory item
+		// set the products inventory list to the inventory item
 		for (Inventory inv : transaction.getInventory()) {
-			
+
 			// create a new product for cart
 			product = new Product();
-			
+
 			// look for existing product matching inventory items product id
 			retList = pDAO.findByProductId(inv.getProductId());
-			
+
 			// copy selected existing product data to new product for cart
 			product.setProductId(retList.get(0).getProductId());
 			product.setProductName(retList.get(0).getProductName());
 			product.setPhoto(retList.get(0).getPhoto());
 			product.setPrice(retList.get(0).getPrice());
-			
+
 			// set inventory data for new product
 			invList = new ArrayList<>();
 			inv.setQty(1L);
@@ -122,7 +133,8 @@ public class StoreService {
 					tDAO.save(transaction);
 				} catch (Exception e) {
 					// query error
-					System.out.println("Update Exception caught for Duplicate Entry");
+					return -1;
+//					System.out.println("Update Exception caught for Duplicate Entry");
 				}
 
 			} else {

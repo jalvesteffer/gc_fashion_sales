@@ -1,6 +1,7 @@
 package com.smoothstack.gcfashion.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class StoreController {
 		}
 	}
 
-	@GetMapping("/transactions/open/{userId}")
+	@GetMapping("/transactions/open/userid/{userId}")
 	public ResponseEntity<List<Product>> getOpenTransactionByUserId(@PathVariable Long userId) {
 
 		List<Product> productList = null;
@@ -67,6 +68,98 @@ public class StoreController {
 
 		// return response
 		return new ResponseEntity<List<Product>>(productList, HttpStatus.OK);
+	}
+
+	@GetMapping("/transactions/open/coupon/userid/{userId}")
+	public ResponseEntity<Coupon> getCouponByUserId(@PathVariable Long userId) {
+
+		Coupon coupon = null;
+
+		// get any open transaction by userId passed as PathVariable
+		Long retVal = storeService.openTransactionsExist(userId);
+
+		// return 404 if no open transaction for userId was found
+		// otherwise, return coupon associated with open transaction for user
+		if (retVal == -1) {
+			// return response
+			return ResponseEntity.notFound().build();
+		} else {
+			coupon = storeService.getCoupon(retVal);
+
+			// return response
+			return new ResponseEntity<Coupon>(coupon, HttpStatus.OK);
+		}
+	}
+
+	@PostMapping("/transactions/open/coupon")
+	public ResponseEntity<String> addCouponByUserId(@RequestBody Transaction t) {
+
+		Transaction existingTransaction = null;
+		List<Coupon> existingCoupons = null;
+		Integer returnInt = -1; // for determining HttpStatus
+
+		Long retVal = storeService.openTransactionsExist(t.getUserId());
+
+		// an open transaction exists, update transaction
+		if (retVal != -1) {
+			// get a copy of the existing transaction
+			existingTransaction = storeService.findTransactionById(retVal);
+
+			// set new coupon values
+			existingTransaction.setCoupons(t.getCoupons());
+
+			// update the existing transaction
+			returnInt = storeService.saveTransaction(existingTransaction);
+		}
+
+		// indicate success or failure
+		if (returnInt == 0) {
+			return new ResponseEntity<String>("", HttpStatus.OK);
+		} else {
+			// get a copy of the existing transaction
+			existingTransaction = storeService.findTransactionById(retVal);
+
+			// set new coupon values
+			existingTransaction.setCoupons(null);
+
+			// update the existing transaction
+			returnInt = storeService.saveTransaction(existingTransaction);
+
+			return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@DeleteMapping("/transactions/open/userid/{userId}/sku/{sku}")
+	public ResponseEntity<String> removeFromOpenTransactionByUserId(@PathVariable Long userId, @PathVariable Long sku) {
+
+		Transaction transaction = null;
+		int idxOfSku = -1;
+
+		// get any open transaction by userId passed as PathVariable
+		Long retVal = storeService.openTransactionsExist(userId);
+
+		// if no open transaction for userId was found, return 404
+		// otherwise, delete the item with sku from the transaction
+		if (retVal == -1) {
+			return new ResponseEntity<String>("", HttpStatus.NOT_FOUND);
+		} else {
+			// get a copy of the transaction
+			transaction = storeService.findTransactionById(retVal);
+
+			// find the location in transaction's inventory list of matching sku
+			for (idxOfSku = 0; idxOfSku < transaction.getInventory().size(); idxOfSku++) {
+				if (sku == transaction.getInventory().get(idxOfSku).getSku()) {
+					break;
+				}
+			}
+
+			// remove the item with matching sku from inventory and update the transaction
+			transaction.getInventory().remove(idxOfSku);
+			storeService.saveTransaction(transaction);
+
+			return new ResponseEntity<String>("", HttpStatus.OK);
+		}
+
 	}
 
 	@PutMapping("/transactions")
@@ -138,9 +231,9 @@ public class StoreController {
 
 		// indicate success or failure
 		if (returnInt == 0) {
-			return new ResponseEntity<String>("Success", HttpStatus.OK);
+			return new ResponseEntity<String>("", HttpStatus.OK);
 		} else {
-			return new ResponseEntity<String>("Bad Request", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
 		}
 	}
 
