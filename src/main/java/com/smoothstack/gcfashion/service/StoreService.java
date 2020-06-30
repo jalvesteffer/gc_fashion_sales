@@ -2,7 +2,9 @@ package com.smoothstack.gcfashion.service;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,12 @@ import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
 import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.entity.Transaction;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
+
+import com.google.gson.Gson;
 
 /**
  * @author jalveste
@@ -61,7 +69,7 @@ public class StoreService {
 
 	public Coupon getCoupon(long transactionId) {
 		Transaction transaction = this.findTransactionById(transactionId);
-		
+
 		if (transaction.getCoupons().size() > 0) {
 			return transaction.getCoupons().get(0);
 		}
@@ -134,7 +142,6 @@ public class StoreService {
 				} catch (Exception e) {
 					// query error
 					return -1;
-//					System.out.println("Update Exception caught for Duplicate Entry");
 				}
 
 			} else {
@@ -171,6 +178,77 @@ public class StoreService {
 		}
 
 		return 0;
+	}
+
+	public Integer updateTransactionCost(Map<String, Object> values) {
+
+		Long userId = ((Number) values.get("userId")).longValue();
+		Double tax = (Double) values.get("tax");
+		Double total = (Double) values.get("total");
+
+		// get transaction by userId
+		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
+
+		if (retVal.isPresent()) {
+			retVal.get().setTax(tax);
+			retVal.get().setTotal(total);
+			try {
+				tDAO.save(retVal.get());
+			} catch (Exception e) {
+				// query error
+				return -1;
+			}
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	public Map<String, String> createPaymentIntent(Transaction t) {
+
+		// set stripe secret key
+		Stripe.apiKey = "sk_test_51GxNidEC7SOZT967RsMuhDj5iy2msgv9sfBc8hysEbi1SOMpDvJBQeZG5aB61zF0nUXH34bMK2iWZFs94FkoiEAS00NWbnqpUj";
+
+		Long totalAmount = (long) (t.getTotal() * 100);
+
+		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder().setCurrency("usd").setAmount(totalAmount)
+				// Verify your integration in this guide by including this parameter
+				.putMetadata("integration_check", "accept_a_payment").build();
+
+		try {
+			PaymentIntent intent = PaymentIntent.create(params);
+
+			Map<String, String> map = new HashMap();
+			map.put("client_secret", intent.getClientSecret());
+			
+			this.setTransactionStatusComplete(t.getUserId());
+			
+			return map;
+		} catch (StripeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public Integer setTransactionStatusComplete(Long userId) {
+
+		// get transaction by userId
+		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
+
+		if (retVal.isPresent()) {
+			try {
+				retVal.get().setStatus("complete");
+				tDAO.save(retVal.get());
+			} catch (Exception e) {
+				// query error
+				return -1;
+			}
+			return 0;
+		} else {
+			return 1;
+		}
+
 	}
 
 }
