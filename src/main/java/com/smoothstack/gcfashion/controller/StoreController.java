@@ -2,7 +2,9 @@ package com.smoothstack.gcfashion.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
 import com.smoothstack.gcfashion.entity.Category;
 import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
@@ -48,9 +51,31 @@ public class StoreController {
 			return ResponseEntity.notFound().build();
 		}
 	}
-
+	
 	@GetMapping("/transactions/open/userid/{userId}")
-	public ResponseEntity<List<Product>> getOpenTransactionByUserId(@PathVariable Long userId) {
+	public ResponseEntity<Transaction> getOpenTransactionByUserId(@PathVariable Long userId) {
+
+		Transaction transaction = null;
+
+		// get any open transaction by userId passed as PathVariable
+		Long retVal = storeService.openTransactionsExist(userId);
+
+		// set productList to null if no open transaction for userId was found
+		// otherwise, create a product list representing users shopping cart
+		// from that transaction info
+		if (retVal == -1) {
+			// return response
+			return ResponseEntity.notFound().build();
+		} else {
+			transaction = storeService.findTransactionById(retVal);
+			
+			// return response
+			return new ResponseEntity<Transaction>(transaction, HttpStatus.OK);
+		}
+	}
+
+	@GetMapping("/transactions/cart/userid/{userId}")
+	public ResponseEntity<List<Product>> getCartByUserId(@PathVariable Long userId) {
 
 		List<Product> productList = null;
 
@@ -234,6 +259,38 @@ public class StoreController {
 			return new ResponseEntity<String>("", HttpStatus.OK);
 		} else {
 			return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@PutMapping("/checkout")
+	public ResponseEntity<Integer> updateTransactionCost(@RequestBody Map<String, Object> values) {
+
+		Integer retVal = storeService.updateTransactionCost(values);
+		
+		// indicate success or failure
+		if (retVal == 0) {
+			return new ResponseEntity<Integer>(retVal, HttpStatus.OK);
+		} else if (retVal == 1) {
+			return ResponseEntity.notFound().build();
+		}
+		else {
+			return ResponseEntity.badRequest().build();
+		}
+	}
+	
+	// Creates a new stripe payment intent and returns the client_secret to complete
+	// the transaction
+	@PostMapping("/checkout")
+	public ResponseEntity<Map<String, String>> createPaymentIntent(@RequestBody Transaction t) {
+		Map<String, String> retVal = null;
+
+		retVal = storeService.createPaymentIntent(t);
+
+		// indicate success or failure
+		if (retVal != null) {
+			return new ResponseEntity<Map<String, String>>(retVal, HttpStatus.OK);
+		} else {
+			return ResponseEntity.badRequest().build();
 		}
 	}
 
