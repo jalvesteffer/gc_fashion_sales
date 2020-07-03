@@ -99,7 +99,7 @@ public class StoreController {
 		// otherwise, return coupon associated with open transaction for user
 		if (retVal == -1) {
 			// return response
-			return ResponseEntity.notFound().build();
+			return ResponseEntity.noContent().build();
 		} else {
 			coupon = storeService.getCoupon(retVal);
 
