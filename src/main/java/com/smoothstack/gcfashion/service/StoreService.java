@@ -11,12 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smoothstack.gcfashion.dao.CouponDAO;
+import com.smoothstack.gcfashion.dao.InventoryDAO;
 import com.smoothstack.gcfashion.dao.ProductDAO;
 import com.smoothstack.gcfashion.dao.TransactionDAO;
+import com.smoothstack.gcfashion.dao.UserDAO;
 import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
 import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.entity.Transaction;
+import com.smoothstack.gcfashion.entity.User;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -24,10 +27,6 @@ import com.stripe.param.PaymentIntentCreateParams;
 
 import com.google.gson.Gson;
 
-/**
- * @author jalveste
- *
- */
 @Service
 public class StoreService {
 
@@ -39,6 +38,12 @@ public class StoreService {
 
 	@Autowired
 	ProductDAO pDAO;
+	
+	@Autowired
+	UserDAO uDAO;
+	
+	@Autowired
+	InventoryDAO iDAO;
 
 	/**
 	 * Returns all transactions
@@ -66,6 +71,33 @@ public class StoreService {
 			return null;
 		}
 	};
+	
+	public User findUserById(long userId) {
+
+		// get user by id
+		Optional<User> optVal = uDAO.findById(userId);
+
+		// return value if present; otherwise, null
+		if (optVal.isPresent()) {
+			return optVal.get();
+		} else {
+			return null;
+		}
+	};
+	
+	public Inventory findInventoryBySku(long inventoryId) {
+
+		// get inventory by id
+		Optional<Inventory> optVal = iDAO.findById(inventoryId);
+
+		// return value if present; otherwise, null
+		if (optVal.isPresent()) {
+			return optVal.get();
+		} else {
+			return null;
+		}
+	};
+	
 
 	public Coupon getCoupon(long transactionId) {
 		Transaction transaction = this.findTransactionById(transactionId);
