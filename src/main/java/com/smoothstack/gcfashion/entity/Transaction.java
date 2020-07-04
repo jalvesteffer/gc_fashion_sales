@@ -19,11 +19,11 @@ import javax.persistence.JoinColumn;
 @Entity
 @Table(name = "transaction")
 public class Transaction implements Serializable {
-	
+
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 3401554292155177032L;
+	private static final long serialVersionUID = -2457643552091706925L;
 
 	@Id
 	@Column(name = "transaction_id")
@@ -34,7 +34,7 @@ public class Transaction implements Serializable {
 	private Long storeId;
 	
 	@Column(name = "payment_id")
-	private Long paymentId;
+	private String paymentId;
 	
 	@Column(name = "user_id")
 	private Long userId;
@@ -101,14 +101,14 @@ public class Transaction implements Serializable {
 	/**
 	 * @return the paymentId
 	 */
-	public Long getPaymentId() {
+	public String getPaymentId() {
 		return paymentId;
 	}
 
 	/**
 	 * @param paymentId the paymentId to set
 	 */
-	public void setPaymentId(Long paymentId) {
+	public void setPaymentId(String paymentId) {
 		this.paymentId = paymentId;
 	}
 
@@ -309,5 +309,5 @@ public class Transaction implements Serializable {
 		return true;
 	}
 
-
+	
 }

@@ -29,6 +29,38 @@ public class StoreController {
 	@Autowired
 	StoreService storeService;
 
+	@PutMapping("/transactions/refund")
+	public ResponseEntity<Integer> refund(@RequestBody Map<String, Object> values) {
+		
+		Long transactionId = -1L;
+		Transaction transaction = null;
+		Integer retVal = -1;
+
+		// get transactionId to refund
+		if (!values.isEmpty() && values.get("transactionId") != null) {
+			transactionId = ((Number) values.get("transactionId")).longValue();
+		}
+		
+		
+		// read transaction by Id
+		if (transactionId != -1L) {
+			transaction = storeService.findTransactionById(transactionId);
+		}
+		
+		// refund payment with given paymentIntent id
+		if (transaction != null && !transaction.getPaymentId().isEmpty()) {
+			retVal = storeService.refundTransaction(transaction.getPaymentId());
+		}
+		
+		// return request status
+		if (retVal == 0) {
+			storeService.updateTransactionStatus(transactionId, "refunded");
+			return new ResponseEntity<Integer>(retVal, HttpStatus.OK);
+		} else {
+			return ResponseEntity.badRequest().build();
+		}
+	}
+
 	@GetMapping("/transactions/{id}")
 	public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
 
@@ -43,7 +75,7 @@ public class StoreController {
 			return ResponseEntity.notFound().build();
 		}
 	}
-	
+
 	@GetMapping("/transactions/open/userid/{userId}")
 	public ResponseEntity<Transaction> getOpenTransactionByUserId(@PathVariable Long userId) {
 
@@ -60,7 +92,7 @@ public class StoreController {
 			return ResponseEntity.notFound().build();
 		} else {
 			transaction = storeService.findTransactionById(retVal);
-			
+
 			// return response
 			return new ResponseEntity<Transaction>(transaction, HttpStatus.OK);
 		}
@@ -258,18 +290,17 @@ public class StoreController {
 	public ResponseEntity<Integer> updateTransactionCost(@RequestBody Map<String, Object> values) {
 
 		Integer retVal = storeService.updateTransactionCost(values);
-		
+
 		// indicate success or failure
 		if (retVal == 0) {
 			return new ResponseEntity<Integer>(retVal, HttpStatus.OK);
 		} else if (retVal == 1) {
 			return ResponseEntity.notFound().build();
-		}
-		else {
+		} else {
 			return ResponseEntity.badRequest().build();
 		}
 	}
-	
+
 	// Creates a new stripe payment intent and returns the client_secret to complete
 	// the transaction
 	@PostMapping("/checkout")

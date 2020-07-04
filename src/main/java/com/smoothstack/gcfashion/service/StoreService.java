@@ -1,6 +1,5 @@
 package com.smoothstack.gcfashion.service;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +19,9 @@ import com.smoothstack.gcfashion.entity.Transaction;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
 import com.stripe.param.PaymentIntentCreateParams;
-
-import com.google.gson.Gson;
+import com.stripe.param.RefundCreateParams;
 
 /**
  * @author jalveste
@@ -39,6 +38,9 @@ public class StoreService {
 
 	@Autowired
 	ProductDAO pDAO;
+
+	// Stripe secret testing key
+	private static final String STRIPE_SECRET = "sk_test_51GxNidEC7SOZT967RsMuhDj5iy2msgv9sfBc8hysEbi1SOMpDvJBQeZG5aB61zF0nUXH34bMK2iWZFs94FkoiEAS00NWbnqpUj";
 
 	/**
 	 * Returns all transactions
@@ -204,10 +206,39 @@ public class StoreService {
 		}
 	}
 
+	public Integer updateTransactionStatus(Long transactionId, String newStatus) {
+
+		if (transactionId != null && newStatus != null && (newStatus == "open" || newStatus == "complete"
+				|| newStatus == "declined" || newStatus == "processing" || newStatus == "refunded")) {
+			
+			// get transaction by userId
+			Optional<Transaction> retVal = tDAO.findById(transactionId);
+			
+			// if transaction is present, update its status to the newStatus and save it
+			if (retVal.isPresent()) {
+				retVal.get().setStatus(newStatus);
+				try {
+					tDAO.save(retVal.get());
+				} catch (Exception e) {
+					// query error
+					return -1;
+				}
+				// success
+				return 0;
+			} else {
+				// transaction does not exist
+				return 1;
+			}
+		} else {
+			// bad parameters
+			return 2;
+		}
+	}
+
 	public Map<String, String> createPaymentIntent(Transaction t) {
 
 		// set stripe secret key
-		Stripe.apiKey = "sk_test_51GxNidEC7SOZT967RsMuhDj5iy2msgv9sfBc8hysEbi1SOMpDvJBQeZG5aB61zF0nUXH34bMK2iWZFs94FkoiEAS00NWbnqpUj";
+		Stripe.apiKey = STRIPE_SECRET;
 
 		Long totalAmount = (long) (t.getTotal() * 100);
 
@@ -220,9 +251,9 @@ public class StoreService {
 
 			Map<String, String> map = new HashMap();
 			map.put("client_secret", intent.getClientSecret());
-			
+
 			this.setTransactionStatusComplete(t.getUserId());
-			
+
 			return map;
 		} catch (StripeException e) {
 			// TODO Auto-generated catch block
@@ -247,6 +278,34 @@ public class StoreService {
 			return 0;
 		} else {
 			return 1;
+		}
+	}
+
+	/**
+	 * This method initiates a full Stripe refund for the provided paymentIntent Id
+	 * 
+	 * @param paymentId paymentIntent Id to refund in stripe
+	 * @return 0 for success; 1 if paymentId not provided; -1 if there is an
+	 *         exception with the refund
+	 */
+	public Integer refundTransaction(String paymentId) {
+
+		// set Stripe secret test key
+		Stripe.apiKey = STRIPE_SECRET;
+
+		// make sure the paymentIntent Id is provided
+		if (paymentId == null || paymentId.isEmpty()) {
+			System.out.println("paymentId argument null or empty : StoreService.refundTransaction()");
+			return 1;
+		}
+
+		// proccess refund for paymentIntent Id
+		try {
+			Refund refund = Refund.create(RefundCreateParams.builder().setPaymentIntent(paymentId).build());
+			return 0;
+		} catch (StripeException e) {
+			System.out.println("Error refunding Stripe transaction : StoreService.refundTransaction()");
+			return -1;
 		}
 
 	}
