@@ -210,10 +210,10 @@ public class StoreService {
 
 		if (transactionId != null && newStatus != null && (newStatus == "open" || newStatus == "complete"
 				|| newStatus == "declined" || newStatus == "processing" || newStatus == "refunded")) {
-			
+
 			// get transaction by userId
 			Optional<Transaction> retVal = tDAO.findById(transactionId);
-			
+
 			// if transaction is present, update its status to the newStatus and save it
 			if (retVal.isPresent()) {
 				retVal.get().setStatus(newStatus);
@@ -240,6 +240,7 @@ public class StoreService {
 		// set stripe secret key
 		Stripe.apiKey = STRIPE_SECRET;
 
+		// total amount of transaction in cents is converted to dollars
 		Long totalAmount = (long) (t.getTotal() * 100);
 
 		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder().setCurrency("usd").setAmount(totalAmount)
@@ -252,7 +253,8 @@ public class StoreService {
 			Map<String, String> map = new HashMap();
 			map.put("client_secret", intent.getClientSecret());
 
-			this.setTransactionStatusComplete(t.getUserId());
+			// set transaction to complete & record payment intent key
+			this.setTransactionStatusComplete(t.getUserId(), intent.getId());
 
 			return map;
 		} catch (StripeException e) {
@@ -262,21 +264,34 @@ public class StoreService {
 		return null;
 	}
 
-	public Integer setTransactionStatusComplete(Long userId) {
+	/**
+	 * This method completes a transaction by setting its status to complete and
+	 * recording its Stripe paymentIntent under the paymentId transaction field
+	 * 
+	 * @param userId           id of user making transaction
+	 * @param paymentIntentKey stripe paymentIntent key
+	 * @return 0 for success; -1 for query error; 1 if no open transactions for user
+	 *         found
+	 */
+	public Integer setTransactionStatusComplete(Long userId, String paymentIntentKey) {
 
 		// get transaction by userId
 		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
 
+		// set transaction fields and save
 		if (retVal.isPresent()) {
 			try {
 				retVal.get().setStatus("complete");
+				retVal.get().setPaymentId(paymentIntentKey);
 				tDAO.save(retVal.get());
 			} catch (Exception e) {
 				// query error
 				return -1;
 			}
+			// success
 			return 0;
 		} else {
+			// open transaction not found for userId
 			return 1;
 		}
 	}
