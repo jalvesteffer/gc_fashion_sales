@@ -31,7 +31,7 @@ public class StoreController {
 
 	@PutMapping("/transactions/refund")
 	public ResponseEntity<Integer> refund(@RequestBody Map<String, Object> values) {
-		
+
 		Long transactionId = -1L;
 		Transaction transaction = null;
 		Integer retVal = -1;
@@ -40,24 +40,43 @@ public class StoreController {
 		if (!values.isEmpty() && values.get("transactionId") != null) {
 			transactionId = ((Number) values.get("transactionId")).longValue();
 		}
-		
-		
+
 		// read transaction by Id
 		if (transactionId != -1L) {
 			transaction = storeService.findTransactionById(transactionId);
 		}
-		
+
 		// refund payment with given paymentIntent id
 		if (transaction != null && !transaction.getPaymentId().isEmpty()) {
 			retVal = storeService.refundTransaction(transaction.getPaymentId());
 		}
-		
+
 		// return request status
 		if (retVal == 0) {
 			storeService.updateTransactionStatus(transactionId, "refunded");
 			return new ResponseEntity<Integer>(retVal, HttpStatus.OK);
 		} else {
 			return ResponseEntity.badRequest().build();
+		}
+	}
+
+	@GetMapping("/transactions/complete")
+	public ResponseEntity<List<Transaction>> getAllCompleteTransactions() {
+
+		List<Transaction> transactions = null;
+
+		// get all open transactions
+		transactions = storeService.findAllCompleteTransactions();
+
+		// return all open transactions if there are any;
+		// otherwise, return no content status
+		if (transactions != null && transactions.size() > 0) {
+			// return response
+			return new ResponseEntity<List<Transaction>>(transactions, HttpStatus.OK);
+
+		} else {
+			// return response
+			return ResponseEntity.noContent().build();
 		}
 	}
 

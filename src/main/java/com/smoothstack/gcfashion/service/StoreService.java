@@ -49,6 +49,14 @@ public class StoreService {
 
 		return tDAO.findAll();
 	};
+	
+	/**
+	 * Returns all open transactions
+	 */
+	public List<Transaction> findAllCompleteTransactions() {
+
+		return tDAO.findAllCompleteTransactions();
+	};
 
 	/**
 	 * Get a transaction by id
