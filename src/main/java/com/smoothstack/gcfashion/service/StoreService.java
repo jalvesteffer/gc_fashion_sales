@@ -10,12 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smoothstack.gcfashion.dao.CouponDAO;
+import com.smoothstack.gcfashion.dao.InventoryDAO;
 import com.smoothstack.gcfashion.dao.ProductDAO;
 import com.smoothstack.gcfashion.dao.TransactionDAO;
+import com.smoothstack.gcfashion.dao.UserDAO;
 import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
 import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.entity.Transaction;
+import com.smoothstack.gcfashion.entity.User;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -23,11 +26,6 @@ import com.stripe.model.Refund;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.RefundCreateParams;
 
-/**
- * @author jalveste
- *
- *
- */
 @Service
 public class StoreService {
 
@@ -39,6 +37,12 @@ public class StoreService {
 
 	@Autowired
 	ProductDAO pDAO;
+	
+	@Autowired
+	UserDAO uDAO;
+	
+	@Autowired
+	InventoryDAO iDAO;
 
 	// Stripe secret testing key
 	private static final String STRIPE_SECRET = "sk_test_51GxNidEC7SOZT967RsMuhDj5iy2msgv9sfBc8hysEbi1SOMpDvJBQeZG5aB61zF0nUXH34bMK2iWZFs94FkoiEAS00NWbnqpUj";
@@ -77,6 +81,46 @@ public class StoreService {
 			return null;
 		}
 	};
+	
+	public User findUserById(long userId) {
+
+		// get user by id
+		Optional<User> optVal = uDAO.findById(userId);
+
+		// return value if present; otherwise, null
+		if (optVal.isPresent()) {
+			return optVal.get();
+		} else {
+			return null;
+		}
+	};
+	
+	public Product findProductById(long id) {
+
+		// get Product by id
+		Optional<Product> optVal = pDAO.findById(id);
+
+		// return value if present; otherwise, null
+		if (optVal.isPresent()) {
+			return optVal.get();
+		} else {
+			return null;
+		}
+	};
+	
+	public Inventory findInventoryById(long id) {
+
+		// get inventory by id
+		Optional<Inventory> optVal = iDAO.findById(id);
+
+		// return value if present; otherwise, null
+		if (optVal.isPresent()) {
+			return optVal.get();
+		} else {
+			return null;
+		}
+	};
+	
 
 	public Coupon getCoupon(long transactionId) {
 		Transaction transaction = this.findTransactionById(transactionId);

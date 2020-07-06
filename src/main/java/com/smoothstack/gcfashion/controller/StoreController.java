@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
 import com.smoothstack.gcfashion.entity.Transaction;
+import com.smoothstack.gcfashion.entity.User;
 import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.service.StoreService;
 
@@ -110,7 +111,54 @@ public class StoreController {
 			return ResponseEntity.notFound().build();
 		}
 	}
+	
+	@GetMapping("/product/{id}")
+	public ResponseEntity<Product> getProductById(@PathVariable Long id) {
 
+		// read inventory by Id passed in body
+		Product product= storeService.findProductById(id);
+		System.out.print(product);
+		
+		// a successful request should produce non-null transaction return value
+		if (product != null) {
+			return new ResponseEntity<Product>(product, HttpStatus.OK);
+		} else {
+			// author id not found, return 404 status
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
+	@GetMapping("/inventory/{id}")
+	public ResponseEntity<Inventory > getInventoryById(@PathVariable Long id) {
+
+		// read inventory by Id passed in body
+		Inventory  inventory= storeService.findInventoryById(id);
+		System.out.print(inventory);
+		
+		// a successful request should produce non-null transaction return value
+		if (inventory != null) {
+			return new ResponseEntity<Inventory >(inventory, HttpStatus.OK);
+		} else {
+			// inventory id not found, return 404 status
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
+	@GetMapping("/users/{id}")
+	public ResponseEntity<User> getUserById(@PathVariable Long id) {
+
+		// read user by Id passed in body
+		User user = storeService.findUserById(id);
+
+		// a successful request should produce non-null transaction return value
+		if (user != null) {
+			return new ResponseEntity<User>(user, HttpStatus.OK);
+		} else {
+			// author id not found, return 404 status
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
 	@GetMapping("/transactions/open/userid/{userId}")
 	public ResponseEntity<Transaction> getOpenTransactionByUserId(@PathVariable Long userId) {
 
