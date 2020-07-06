@@ -85,10 +85,23 @@ public class StoreService {
 		}
 	};
 	
-	public Inventory findInventoryBySku(long inventoryId) {
+	public Product findProductById(long id) {
+
+		// get Product by id
+		Optional<Product> optVal = pDAO.findById(id);
+
+		// return value if present; otherwise, null
+		if (optVal.isPresent()) {
+			return optVal.get();
+		} else {
+			return null;
+		}
+	};
+	
+	public Inventory findInventoryById(long id) {
 
 		// get inventory by id
-		Optional<Inventory> optVal = iDAO.findById(inventoryId);
+		Optional<Inventory> optVal = iDAO.findById(id);
 
 		// return value if present; otherwise, null
 		if (optVal.isPresent()) {

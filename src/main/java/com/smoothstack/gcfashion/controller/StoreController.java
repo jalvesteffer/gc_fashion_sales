@@ -52,18 +52,34 @@ public class StoreController {
 		}
 	}
 	
-	@GetMapping("/inventory/{sku}")
-	public ResponseEntity<Inventory> getInventoryBySku(@PathVariable Long sku) {
+	@GetMapping("/product/{id}")
+	public ResponseEntity<Product> getProductById(@PathVariable Long id) {
 
 		// read inventory by Id passed in body
-		Inventory inventory= storeService.findInventoryBySku(sku);
+		Product product= storeService.findProductById(id);
+		System.out.print(product);
+		
+		// a successful request should produce non-null transaction return value
+		if (product != null) {
+			return new ResponseEntity<Product>(product, HttpStatus.OK);
+		} else {
+			// author id not found, return 404 status
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
+	@GetMapping("/inventory/{id}")
+	public ResponseEntity<Inventory > getInventoryById(@PathVariable Long id) {
+
+		// read inventory by Id passed in body
+		Inventory  inventory= storeService.findInventoryById(id);
 		System.out.print(inventory);
 		
 		// a successful request should produce non-null transaction return value
 		if (inventory != null) {
-			return new ResponseEntity<Inventory>(inventory, HttpStatus.OK);
+			return new ResponseEntity<Inventory >(inventory, HttpStatus.OK);
 		} else {
-			// author id not found, return 404 status
+			// inventory id not found, return 404 status
 			return ResponseEntity.notFound().build();
 		}
 	}
