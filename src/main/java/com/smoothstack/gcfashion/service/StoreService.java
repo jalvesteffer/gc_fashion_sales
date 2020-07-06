@@ -1,6 +1,5 @@
 package com.smoothstack.gcfashion.service;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +22,9 @@ import com.smoothstack.gcfashion.entity.User;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
 import com.stripe.param.PaymentIntentCreateParams;
-
-import com.google.gson.Gson;
+import com.stripe.param.RefundCreateParams;
 
 @Service
 public class StoreService {
@@ -45,12 +44,23 @@ public class StoreService {
 	@Autowired
 	InventoryDAO iDAO;
 
+	// Stripe secret testing key
+	private static final String STRIPE_SECRET = "sk_test_51GxNidEC7SOZT967RsMuhDj5iy2msgv9sfBc8hysEbi1SOMpDvJBQeZG5aB61zF0nUXH34bMK2iWZFs94FkoiEAS00NWbnqpUj";
+
 	/**
 	 * Returns all transactions
 	 */
 	public List<Transaction> findAllTransactions() {
 
 		return tDAO.findAll();
+	};
+
+	/**
+	 * Returns all open transactions
+	 */
+	public List<Transaction> findAllCompleteTransactions() {
+
+		return tDAO.findAllCompleteTransactions();
 	};
 
 	/**
@@ -115,11 +125,11 @@ public class StoreService {
 	public Coupon getCoupon(long transactionId) {
 		Transaction transaction = this.findTransactionById(transactionId);
 
-		if (transaction.getCoupons().size() > 0) {
+		if (transaction != null && transaction.getCoupons() != null && transaction.getCoupons().size() > 0) {
 			return transaction.getCoupons().get(0);
+		} else {
+			return null;
 		}
-
-		return null;
 	}
 
 	public Long openTransactionsExist(long userId) {
@@ -249,11 +259,41 @@ public class StoreService {
 		}
 	}
 
+	public Integer updateTransactionStatus(Long transactionId, String newStatus) {
+
+		if (transactionId != null && newStatus != null && (newStatus == "open" || newStatus == "complete"
+				|| newStatus == "declined" || newStatus == "processing" || newStatus == "refunded")) {
+
+			// get transaction by userId
+			Optional<Transaction> retVal = tDAO.findById(transactionId);
+
+			// if transaction is present, update its status to the newStatus and save it
+			if (retVal.isPresent()) {
+				retVal.get().setStatus(newStatus);
+				try {
+					tDAO.save(retVal.get());
+				} catch (Exception e) {
+					// query error
+					return -1;
+				}
+				// success
+				return 0;
+			} else {
+				// transaction does not exist
+				return 1;
+			}
+		} else {
+			// bad parameters
+			return 2;
+		}
+	}
+
 	public Map<String, String> createPaymentIntent(Transaction t) {
 
 		// set stripe secret key
-		Stripe.apiKey = "sk_test_51GxNidEC7SOZT967RsMuhDj5iy2msgv9sfBc8hysEbi1SOMpDvJBQeZG5aB61zF0nUXH34bMK2iWZFs94FkoiEAS00NWbnqpUj";
+		Stripe.apiKey = STRIPE_SECRET;
 
+		// total amount of transaction in cents is converted to dollars
 		Long totalAmount = (long) (t.getTotal() * 100);
 
 		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder().setCurrency("usd").setAmount(totalAmount)
@@ -265,9 +305,10 @@ public class StoreService {
 
 			Map<String, String> map = new HashMap();
 			map.put("client_secret", intent.getClientSecret());
-			
-			this.setTransactionStatusComplete(t.getUserId());
-			
+
+			// set transaction to complete & record payment intent key
+			this.setTransactionStatusComplete(t.getUserId(), intent.getId());
+
 			return map;
 		} catch (StripeException e) {
 			// TODO Auto-generated catch block
@@ -276,24 +317,69 @@ public class StoreService {
 		return null;
 	}
 
-	public Integer setTransactionStatusComplete(Long userId) {
+	/**
+	 * This method completes a transaction by setting its status to complete and
+	 * recording its Stripe paymentIntent under the paymentId transaction field
+	 * 
+	 * @param userId           id of user making transaction
+	 * @param paymentIntentKey stripe paymentIntent key
+	 * @return 0 for success; -1 for query error; 1 if no open transactions for user
+	 *         found
+	 */
+	public Integer setTransactionStatusComplete(Long userId, String paymentIntentKey) {
 
 		// get transaction by userId
 		Optional<Transaction> retVal = tDAO.findOpenTransactionsByUserId(userId);
 
+		// set transaction fields and save
 		if (retVal.isPresent()) {
 			try {
 				retVal.get().setStatus("complete");
+				retVal.get().setPaymentId(paymentIntentKey);
 				tDAO.save(retVal.get());
 			} catch (Exception e) {
 				// query error
 				return -1;
 			}
+			// success
 			return 0;
 		} else {
+			// open transaction not found for userId
+			return 1;
+		}
+	}
+
+	/**
+	 * This method initiates a full Stripe refund for the provided paymentIntent Id
+	 * 
+	 * @param paymentId paymentIntent Id to refund in stripe
+	 * @return 0 for success; 1 if paymentId not provided; -1 if there is an
+	 *         exception with the refund
+	 */
+	public Integer refundTransaction(String paymentId) {
+
+		// set Stripe secret test key
+		Stripe.apiKey = STRIPE_SECRET;
+
+		// make sure the paymentIntent Id is provided
+		if (paymentId == null || paymentId.isEmpty()) {
+			System.out.println("paymentId argument null or empty : StoreService.refundTransaction()");
 			return 1;
 		}
 
+		// proccess refund for paymentIntent Id
+		try {
+			Refund refund = Refund.create(RefundCreateParams.builder().setPaymentIntent(paymentId).build());
+			return 0;
+		} catch (StripeException e) {
+			System.out.println("Error refunding Stripe transaction : StoreService.refundTransaction()");
+			return -1;
+		}
+
+	}
+
+	public List<Transaction> getAllCompleteTransactionsLike(Long tranactionId) {
+		return tDAO.findCompleteLike(tranactionId);
 	}
 
 }
