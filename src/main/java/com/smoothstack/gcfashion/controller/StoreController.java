@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.smoothstack.gcfashion.entity.Coupon;
 import com.smoothstack.gcfashion.entity.Inventory;
 import com.smoothstack.gcfashion.entity.Transaction;
+import com.smoothstack.gcfashion.entity.User;
 import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.service.StoreService;
 
