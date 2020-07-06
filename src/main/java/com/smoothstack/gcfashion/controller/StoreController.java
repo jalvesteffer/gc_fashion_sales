@@ -29,6 +29,22 @@ public class StoreController {
 	@Autowired
 	StoreService storeService;
 
+	@GetMapping("/transactions/complete/like/{transactionId}")
+	public ResponseEntity<List<Transaction>> getAllOpenTransactionsLike(@PathVariable Long transactionId) {
+
+		// read all products
+		List<Transaction> transactions = storeService.getAllCompleteTransactionsLike(transactionId);
+
+		// a successful request should produce a list not null with a size greater than
+		// zero
+		if (transactions != null && transactions.size() > 0) {
+			return new ResponseEntity<List<Transaction>>(transactions, HttpStatus.OK);
+		} else {
+			// products not found, return 404 status
+			return new ResponseEntity<List<Transaction>>(transactions, HttpStatus.OK);
+		}
+	}
+
 	@PutMapping("/transactions/refund")
 	public ResponseEntity<Integer> refund(@RequestBody Map<String, Object> values) {
 
@@ -282,7 +298,8 @@ public class StoreController {
 		if (returnInt == 0) {
 			return new ResponseEntity<String>("", HttpStatus.OK);
 		} else {
-			return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
+			// SKU already exists in cart. Ignore this error, so return OK
+			return new ResponseEntity<String>("", HttpStatus.OK);
 		}
 	}
 

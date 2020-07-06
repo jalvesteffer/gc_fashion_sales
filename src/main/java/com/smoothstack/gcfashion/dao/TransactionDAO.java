@@ -18,10 +18,7 @@ public interface TransactionDAO extends JpaRepository<Transaction, Long>{
 	
 	@Query(value = "SELECT * FROM transaction t WHERE user_id=:userId AND status='open' LIMIT 1", nativeQuery = true)
 	Optional<Transaction> findOpenTransactionsByUserId(@Param("userId") Long userId);
+	
+	@Query(value = "SELECT * FROM transaction t WHERE status='complete' AND t.transaction_id LIKE %:transactionId%", nativeQuery = true)
+    List<Transaction> findCompleteLike(@Param("transactionId") Long transactionId);
 }
-
-
-
-
-
-

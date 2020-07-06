@@ -49,7 +49,7 @@ public class StoreService {
 
 		return tDAO.findAll();
 	};
-	
+
 	/**
 	 * Returns all open transactions
 	 */
@@ -80,11 +80,11 @@ public class StoreService {
 	public Coupon getCoupon(long transactionId) {
 		Transaction transaction = this.findTransactionById(transactionId);
 
-		if (transaction.getCoupons().size() > 0) {
+		if (transaction != null && transaction.getCoupons() != null && transaction.getCoupons().size() > 0) {
 			return transaction.getCoupons().get(0);
+		} else {
+			return null;
 		}
-
-		return null;
 	}
 
 	public Long openTransactionsExist(long userId) {
@@ -331,6 +331,10 @@ public class StoreService {
 			return -1;
 		}
 
+	}
+
+	public List<Transaction> getAllCompleteTransactionsLike(Long tranactionId) {
+		return tDAO.findCompleteLike(tranactionId);
 	}
 
 }
