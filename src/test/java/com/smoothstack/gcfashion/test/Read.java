@@ -15,8 +15,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.smoothstack.gcfashion.dao.ProductDAO;
 import com.smoothstack.gcfashion.dao.TransactionDAO;
 import com.smoothstack.gcfashion.entity.Coupon;
+import com.smoothstack.gcfashion.entity.Inventory;
+import com.smoothstack.gcfashion.entity.Product;
 import com.smoothstack.gcfashion.entity.Transaction;
 import com.smoothstack.gcfashion.service.StoreService;
 
@@ -26,64 +29,12 @@ public class Read {
 
 	@Mock
 	TransactionDAO tDAO;
+	
+	@Mock
+	ProductDAO pDAO;
 
 	@InjectMocks
 	StoreService storeService;
-
-	@Test
-	public void testFindAllTransactionsEmpty() {
-		List<Transaction> transactions = new ArrayList<>();
-
-		when(tDAO.findAll()).thenReturn(transactions);
-
-		assertEquals(storeService.findAllTransactions().size(), 0);
-
-	}
-
-	@Test
-	public void testFindAllTransactionsNotEmpty() {
-		List<Transaction> transactions = new ArrayList<>();
-
-		Transaction t1 = new Transaction();
-		Transaction t2 = new Transaction();
-
-		transactions.add(t1);
-		transactions.add(t2);
-
-		when(tDAO.findAll()).thenReturn(transactions);
-
-		assertEquals(storeService.findAllTransactions().size(), 2);
-
-	}
-
-	@Test
-	public void testFindAllCompleteTransactionsEmpty() {
-		List<Transaction> transactions = new ArrayList<>();
-
-		when(tDAO.findAllCompleteTransactions()).thenReturn(transactions);
-
-		assertEquals(storeService.findAllCompleteTransactions().size(), 0);
-
-	}
-
-	@Test
-	public void testFindAllCompleteTransactionsNotEmpty() {
-		List<Transaction> transactions = new ArrayList<>();
-
-		Transaction t1 = new Transaction();
-		Transaction t2 = new Transaction();
-
-		t1.setStatus("complete");
-		t2.setStatus("complete");
-
-		transactions.add(t1);
-		transactions.add(t2);
-
-		when(tDAO.findAllCompleteTransactions()).thenReturn(transactions);
-
-		assertEquals(storeService.findAllCompleteTransactions().size(), 2);
-
-	}
 
 	@Test
 	public void testGetInvalidTransaction() {
@@ -177,13 +128,93 @@ public class Read {
 	}
 	
 	@Test
-	public void testgetCompleteTransactionDetailsEmpty() {
+	public void testGetCompleteTransactionDetailsBadId() {
 		
-		when(tDAO.findOpenTransactionsByUserId(10L)).thenReturn(Optional.empty());
+		List<Product> productList = new ArrayList<>();
 		
-		long retVal = storeService.openTransactionsExist(10L); 
+		when(tDAO.findById(10L)).thenReturn(Optional.empty());
 		
-		assertEquals(retVal, -1L);
+		assertNull(storeService.getCompleteTransactionDetails(10L));
 
+	}
+	
+	@Test
+	public void testGetCompleteTransactionDetailsEmptyInventoryList() {
+		
+		List<Product> productList = new ArrayList<>();
+		List<Inventory> inventoryList = new ArrayList<>();
+		
+		Transaction transaction = new Transaction();
+		transaction.setTransactionId(10L);
+		transaction.setInventory(inventoryList);
+		
+		when(tDAO.findById(10L)).thenReturn(Optional.of(transaction));
+		
+		assertEquals(storeService.getCompleteTransactionDetails(10L), productList);
+
+	}
+	
+	@Test
+	public void testGetCompleteTransactionDetailsValid() {
+		
+		List<Product> productListA = new ArrayList<>();
+		List<Product> productListB = new ArrayList<>();
+		List<Inventory> inventoryList = new ArrayList<>();
+
+		Inventory inventoryA =new Inventory();
+		inventoryA.setProductId(1L);
+		inventoryA.setQty(1L);
+		Inventory inventoryB =new Inventory();
+		inventoryB.setProductId(2L);
+		inventoryB.setQty(1L);
+		inventoryList.add(inventoryA);
+		inventoryList.add(inventoryB);
+		
+		Product productOne = new Product();
+		productOne.setProductId(1L);
+		productOne.setProductName("Product 1");
+		productOne.setPhoto("1.jpg");
+		productOne.setPrice(10.00);
+		productListA.add(productOne);
+		
+		Product productTwo = new Product();
+		productOne.setProductId(2L);
+		productOne.setProductName("Product 2");
+		productOne.setPhoto("2.jpg");
+		productOne.setPrice(20.00);
+		productListB.add(productTwo);
+
+		
+		
+		Transaction transaction = new Transaction();
+		transaction.setTransactionId(10L);
+		transaction.setInventory(inventoryList);
+		
+		when(tDAO.findById(10L)).thenReturn(Optional.of(transaction));
+		when(pDAO.findByProductId(1L)).thenReturn(productListA);
+		when(pDAO.findByProductId(2L)).thenReturn(productListB);
+		
+		assertEquals(storeService.getCompleteTransactionDetails(10L).size(), 2);
+
+	}
+	
+	@Test
+	public void testGetAllCompleteTransactionsLikeNoMatch() {
+		List<Transaction> transactions = new ArrayList<>();
+		
+		when(tDAO.findCompleteLike(1L)).thenReturn(transactions);
+		
+		assertEquals(storeService.getAllCompleteTransactionsLike(1L), transactions);
+	}
+	
+	@Test
+	public void testGetAllCompleteTransactionsLikeMatch() {
+		List<Transaction> transactions = new ArrayList<>();
+		Transaction t = new Transaction();
+		transactions.add(t);
+		
+		when(tDAO.findCompleteLike(1L)).thenReturn(transactions);
+		
+		assertEquals(storeService.getAllCompleteTransactionsLike(1L), transactions);
 	}
 }
