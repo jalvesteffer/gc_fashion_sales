@@ -13,7 +13,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import com.smoothstack.gcfashion.dao.InventoryDAO;
 import com.smoothstack.gcfashion.dao.ProductDAO;
@@ -25,10 +24,8 @@ import com.smoothstack.gcfashion.entity.Transaction;
 import com.smoothstack.gcfashion.entity.User;
 import com.smoothstack.gcfashion.service.StoreService;
 
-
-@SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
-public class Find {
+public class FindTest {
 	
 	@Mock
 	TransactionDAO tDAO;
