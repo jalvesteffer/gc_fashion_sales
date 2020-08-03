@@ -17,6 +17,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
+		<build.number></build.number>
 	</properties>
 
 	<dependencies>
@@ -87,6 +88,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>${artifactId}-${version}${build.number}</finalName>
 	</build>
 
 </project>
