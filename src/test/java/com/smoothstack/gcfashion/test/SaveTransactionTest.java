@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-import java.sql.SQLException;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -12,16 +11,13 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import com.smoothstack.gcfashion.dao.TransactionDAO;
 import com.smoothstack.gcfashion.entity.Transaction;
 import com.smoothstack.gcfashion.service.StoreService;
 
-
-@SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
-public class SaveTransaction {
+public class SaveTransactionTest {
 	
 	@Mock
 	TransactionDAO tDAO;

@@ -12,15 +12,13 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import com.smoothstack.gcfashion.dao.TransactionDAO;
 import com.smoothstack.gcfashion.entity.Transaction;
 import com.smoothstack.gcfashion.service.StoreService;
 
-@SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
-public class UpdateTransaction {
+public class UpdateTransactionTest {
 
 	@Mock
 	TransactionDAO tDAO;
