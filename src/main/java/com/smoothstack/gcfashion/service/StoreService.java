@@ -313,19 +313,25 @@ public class StoreService {
 		// total amount of transaction in cents is converted to dollars
 		Long totalAmount = (long) (t.getTotal() * 100);
 
+		// create properties variable for payment intent with transaction info
 		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder().setCurrency("usd").setAmount(totalAmount)
 				// Verify your integration in this guide by including this parameter
 				.putMetadata("integration_check", "accept_a_payment").build();
 
 		try {
+			// create a new payment on stripe with above transaction parameters
+			// return value contains client secret to complete transaction
 			PaymentIntent intent = PaymentIntent.create(params);
 
+			// create object to hold client secret info
 			Map<String, String> map = new HashMap();
 			map.put("client_secret", intent.getClientSecret());
 
-			// set transaction to complete & record payment intent key
+			// set transaction to complete & record payment intent key for use 
+			// in processing returns in the future
 			this.setTransactionStatusComplete(t.getUserId(), intent.getId());
 
+			// return map object with client secret
 			return map;
 		} catch (StripeException e) {
 			// TODO Auto-generated catch block
