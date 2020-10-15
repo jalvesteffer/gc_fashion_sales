@@ -4,6 +4,9 @@ import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -31,12 +34,25 @@ public class SpringConfig {
 	@Bean
 	public Docket swaggerConfiguration() {
 		return new Docket(DocumentationType.SWAGGER_2)
+				.groupName("sales")
 				.select()
 				.paths(PathSelectors.ant("/gcfashions/sales/**"))
 				.apis(RequestHandlerSelectors.basePackage("com.smoothstack"))
 				.build()
 				.apiInfo(apiInfo());
 	}
+	
+	@Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/v2/api-docs", config);
+        return new CorsFilter(source);
+    }
 	
 	private ApiInfo apiInfo() {
 	    return new ApiInfo(
