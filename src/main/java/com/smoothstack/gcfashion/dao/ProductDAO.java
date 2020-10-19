@@ -13,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface ProductDAO extends JpaRepository<Product, Long>{
+	
+	// Spring Data JPA Derived Queries from method names
 	List<Product> findByCatId(Long catId);
 	List<Product> findByProductId(Long productId);
 }
